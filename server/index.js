@@ -1,4 +1,7 @@
 const http = require("node:http");
+const https = require("node:https");
+const fs = require("node:fs");
+const path = require("node:path");
 const next = require("next");
 
 const { createAccessGate } = require("./access-gate");
@@ -65,11 +68,22 @@ async function main() {
     handleUpgrade(req, socket, head);
   };
 
-  const createServer = () =>
-    http.createServer((req, res) => {
+  const certFile = path.resolve(process.cwd(), "localhost.pem");
+  const keyFile = path.resolve(process.cwd(), "localhost-key.pem");
+  const useHttps = fs.existsSync(certFile) && fs.existsSync(keyFile);
+  const tlsOptions = useHttps
+    ? { cert: fs.readFileSync(certFile), key: fs.readFileSync(keyFile) }
+    : null;
+
+  const createServer = () => {
+    const handler = (req, res) => {
       if (accessGate.handleHttp(req, res)) return;
       handle(req, res);
-    });
+    };
+    return useHttps
+      ? https.createServer(tlsOptions, handler)
+      : http.createServer(handler);
+  };
 
   const servers = hostnames.map(() => createServer());
 
@@ -120,7 +134,8 @@ async function main() {
       ? "localhost"
       : hostname;
 
-  const browserUrl = `http://${hostForBrowser}:${port}`;
+  const protocol = useHttps ? "https" : "http";
+  const browserUrl = `${protocol}://${hostForBrowser}:${port}`;
   console.info(`Open in browser: ${browserUrl}`);
 }
 

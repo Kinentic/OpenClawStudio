@@ -573,11 +573,11 @@ export const useGatewayConnection = (
     try {
       await settingsCoordinator.flushPending();
       await client.connect({
-        gatewayUrl: resolveStudioProxyGatewayUrl(),
+        gatewayUrl: gatewayUrl,
         token,
         authScopeKey: gatewayUrl,
         clientName: "openclaw-control-ui",
-        disableDeviceAuth: true,
+        disableDeviceAuth: false,
       });
       await ensureGatewayReloadModeHotForLocalStudio({
         client,

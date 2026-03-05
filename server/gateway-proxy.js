@@ -35,13 +35,12 @@ const injectAuthToken = (params, token) => {
 
 const resolveOriginForUpstream = (upstreamUrl) => {
   const url = new URL(upstreamUrl);
-  const proto = url.protocol === "wss:" ? "https:" : "http:";
   const hostname =
     url.hostname === "127.0.0.1" || url.hostname === "::1" || url.hostname === "0.0.0.0"
       ? "localhost"
       : url.hostname;
   const host = url.port ? `${hostname}:${url.port}` : hostname;
-  return `${proto}//${host}`;
+  return `https://${host}`;
 };
 
 const hasNonEmptyToken = (params) => {
